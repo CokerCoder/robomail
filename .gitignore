@@ -1,0 +1,6 @@
+# JetBrains config files
+.idea/
+
+# JetBrains build files
+*.eml
+*.iml
