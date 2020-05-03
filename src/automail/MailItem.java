@@ -82,4 +82,6 @@ public class MailItem {
 		if (hash == null) { hash = count++; hashMap.put(hash0, hash); }
 		return hash;
 	}
+
+	public Boolean getFragile() { return fragile; }
 }
