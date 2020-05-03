@@ -29,6 +29,8 @@ public class Simulation {
     private static ArrayList<MailItem> MAIL_DELIVERED;
     private static double total_score = 0;
 
+    private static DeliveryStat deliveryStat = new DeliveryStat();
+
     public static void main(String[] args) throws IOException, InstantiationException, IllegalAccessException, ClassNotFoundException {
     	Properties automailProperties = new Properties();
 		// Default properties
