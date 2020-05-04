@@ -69,47 +69,33 @@ public class MailPool implements IMailPool {
 		if (pool.size() > 0) {
 			try {
 				MailItem nextItem = j.next().mailItem;
-
-				// If it's a fragile item then add to the special arm
-				if (nextItem.getFragile()) {
-					robot.addToArm(nextItem);
-					j.remove();
-
-					if (pool.size() > 0) {
-						nextItem = j.next().mailItem;
-						// Cannot carry more than one fragile item at a time
-						if (nextItem.getFragile()) {
-							robot.dispatch();
-							i.remove();
-							return;
-						}
+				for(int num =0; num<3; num++){
+					if(nextItem.getFragile() && robot.getArm()==null){
+						robot.addToArm(nextItem);
+						j.remove();
+						if(pool.size()>0) nextItem = j.next().mailItem;
+						else break;
+						continue;
 					}
-					else {
+					if(nextItem.getFragile() && robot.getArm()!=null){
 						robot.dispatch();
 						i.remove();
 						return;
 					}
-				}
-
-				robot.addToHand(nextItem); // hand first as we want higher priority delivered first
-				j.remove();
-
-				if (pool.size() > 0) {
-					nextItem = j.next().mailItem;
-					// Cannot carry more than one fragile item at a time
-					if (nextItem.getFragile()) {
-						robot.dispatch();
-						i.remove();
-						return;
+					if(robot.getDeliveryItem() == null){
+						robot.addToHand(nextItem);
+						j.remove();
+						if(pool.size()>0) nextItem = j.next().mailItem;
+						else break;
+						continue;
 					}
-				} else {
-					robot.dispatch();
-					i.remove();
-					return;
+					if(robot.getTube() == null){
+						robot.addToTube(nextItem);
+						j.remove();
+						if(pool.size()>0) nextItem = j.next().mailItem;
+						else break;
+					}
 				}
-
-				robot.addToTube(nextItem);
-				j.remove();
 				robot.dispatch(); // send the robot off if it has any items to deliver
 				i.remove(); // remove from mailPool queue
 			} catch (Exception e) {

@@ -26,6 +26,7 @@ public class Robot {
     
     private MailItem deliveryItem = null;
     private MailItem tube = null;
+    private MailItem special_arm = null;
     
     private int deliveryCounter;
     
@@ -183,5 +184,9 @@ public class Robot {
 		tube = mailItem;
 		if (tube.weight > INDIVIDUAL_MAX_WEIGHT) throw new ItemTooHeavyException();
 	}
+
+    public MailItem getDeliveryItem() {
+        return deliveryItem;
+    }
 
 }

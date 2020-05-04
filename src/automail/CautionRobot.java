@@ -24,4 +24,7 @@ public class CautionRobot extends Robot {
         arm = mailItem;
         if (arm.weight > INDIVIDUAL_MAX_WEIGHT) throw new ItemTooHeavyException();
     }
+    public MailItem getArm(){
+        return arm;
+    }
 }
