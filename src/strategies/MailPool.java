@@ -68,13 +68,13 @@ public class MailPool implements IMailPool {
 		ListIterator<Item> j = pool.listIterator();
 		if (pool.size() > 0) {
 			try {
-				MailItem nextItem = j.next().mailItem;
+				MailItem nextItem;
 				for(int num =0; num<3; num++){
+					if(pool.size()>0) nextItem = j.next().mailItem;
+					else break;
 					if(nextItem.getFragile() && robot.getArm()==null){
 						robot.addToArm(nextItem);
 						j.remove();
-						if(pool.size()>0) nextItem = j.next().mailItem;
-						else break;
 						continue;
 					}
 					if(nextItem.getFragile() && robot.getArm()!=null){
@@ -85,15 +85,11 @@ public class MailPool implements IMailPool {
 					if(robot.getDeliveryItem() == null){
 						robot.addToHand(nextItem);
 						j.remove();
-						if(pool.size()>0) nextItem = j.next().mailItem;
-						else break;
 						continue;
 					}
 					if(robot.getTube() == null){
 						robot.addToTube(nextItem);
 						j.remove();
-						if(pool.size()>0) nextItem = j.next().mailItem;
-						else break;
 					}
 				}
 				robot.dispatch(); // send the robot off if it has any items to deliver
