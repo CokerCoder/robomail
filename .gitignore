@@ -5,4 +5,9 @@
 *.eml
 *.iml
 
+
+# java config files
 bin/
+
+# VSCode config files
+.vscode/
