@@ -62,32 +62,35 @@ public class MailPool implements IMailPool {
 
 	private void loadRobot(ListIterator<Robot> i) throws ItemTooHeavyException, BreakingFragileItemException {
 		// Cast every robot to caution robot
-		CautionRobot robot = (CautionRobot) i.next();
+		Robot robot = i.next();
 		assert(robot.isEmpty());
 		// System.out.printf("P: %3d%n", pool.size());
 		ListIterator<Item> j = pool.listIterator();
 		if (pool.size() > 0) {
 			try {
 				MailItem nextItem;
-				for(int num =0; num<3; num++){
-					if(pool.size()>0) nextItem = j.next().mailItem;
-					else break;
-					if(nextItem.getFragile() && robot.getArm()==null){
-						robot.addToArm(nextItem);
-						j.remove();
-						continue;
+				// A robot can hold up to three mails
+				for (int num=0; num<3; num++) {
+					
+					if (pool.size()>0) { nextItem = j.next().mailItem; } else {break; }
+
+					if (nextItem.getFragile()) {
+						// Cast to Caution Robot only if fragile items appear
+						if (((CautionRobot) robot).getArm() == null) {
+							j.remove();
+							continue;
+						} else {
+							break;
+						}
 					}
-					if(nextItem.getFragile() && robot.getArm()!=null){
-						robot.dispatch();
-						i.remove();
-						return;
-					}
-					if(robot.getDeliveryItem() == null){
+
+					if (robot.getDeliveryItem() == null) {
 						robot.addToHand(nextItem);
 						j.remove();
 						continue;
 					}
-					if(robot.getTube() == null){
+
+					if (robot.getTube() == null) {
 						robot.addToTube(nextItem);
 						j.remove();
 					}

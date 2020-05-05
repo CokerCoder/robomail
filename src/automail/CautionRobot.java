@@ -1,6 +1,5 @@
 package automail;
 
-import exceptions.BreakingFragileItemException;
 import exceptions.ItemTooHeavyException;
 import strategies.IMailPool;
 
