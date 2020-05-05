@@ -116,7 +116,6 @@ public class MailGenerator {
                 complete = true;
             }
         }
-
     }
     
     /**

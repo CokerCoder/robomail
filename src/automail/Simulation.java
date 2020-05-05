@@ -133,7 +133,15 @@ public class Simulation {
     			MAIL_DELIVERED.add(deliveryItem);
                 System.out.printf("T: %3d > Deliv(%4d) [%s]%n", Clock.Time(), MAIL_DELIVERED.size(), deliveryItem.toString());
     			// Calculate delivery score
-    			total_score += calculateDeliveryScore(deliveryItem);
+				total_score += calculateDeliveryScore(deliveryItem);
+				
+				if (deliveryItem.getFragile()) {
+					deliveryStat.addNumCautionPackages();
+					deliveryStat.addCautionWeight(deliveryItem.getWeight());
+				} else if (!deliveryItem.getFragile()) {
+					deliveryStat.addNumPackages();
+					deliveryStat.addTotalWeight(deliveryItem.getWeight());
+				}
     		}
     		else{
     			try {
@@ -156,6 +164,9 @@ public class Simulation {
     public static void printResults(){
         System.out.println("T: "+Clock.Time()+" | Simulation complete!");
         System.out.println("Final Delivery time: "+Clock.Time());
-        System.out.printf("Final Score: %.2f%n", total_score);
+		System.out.printf("Final Score: %.2f%n", total_score);
+		if (deliveryStat != null) {
+        	System.out.println(deliveryStat.toString());
+        }
     }
 }

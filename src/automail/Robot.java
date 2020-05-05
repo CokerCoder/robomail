@@ -19,16 +19,15 @@ public class Robot {
     /** Possible states the robot can be in */
     public enum RobotState { DELIVERING, WAITING, RETURNING }
     public RobotState current_state;
-    private int current_floor;
-    private int destination_floor;
-    private IMailPool mailPool;
-    private boolean receivedDispatch;
+    protected int current_floor;
+    protected int destination_floor;
+    protected IMailPool mailPool;
+    protected boolean receivedDispatch;
     
-    private MailItem deliveryItem = null;
-    private MailItem tube = null;
-    private MailItem special_arm = null;
+    public MailItem deliveryItem = null;
+    protected MailItem tube = null;
     
-    private int deliveryCounter;
+    protected int deliveryCounter;
     
 
     /**
@@ -116,7 +115,7 @@ public class Robot {
     /**
      * Sets the route for the robot
      */
-    private void setRoute() {
+    protected void setRoute() {
         /** Set the destination floor */
         destination_floor = deliveryItem.getDestFloor();
     }
@@ -125,7 +124,7 @@ public class Robot {
      * Generic function that moves the robot towards the destination
      * @param destination the floor towards which the robot is moving
      */
-    private void moveTowards(int destination) {
+    protected void moveTowards(int destination) {
         if(current_floor < destination){
             current_floor++;
         } else {
@@ -133,7 +132,7 @@ public class Robot {
         }
     }
     
-    private String getIdTube() {
+    protected String getIdTube() {
     	return String.format("%s(%1d)", id, (tube == null ? 0 : 1));
     }
     
@@ -141,7 +140,7 @@ public class Robot {
      * Prints out the change in state
      * @param nextState the state to which the robot is transitioning
      */
-    private void changeState(RobotState nextState){
+    protected void changeState(RobotState nextState){
     	assert(!(deliveryItem == null && tube != null));
     	if (current_state != nextState) {
             System.out.printf("T: %3d > %7s changed from %s to %s%n", Clock.Time(), getIdTube(), current_state, nextState);

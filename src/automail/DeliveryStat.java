@@ -14,12 +14,12 @@ public class DeliveryStat {
         numCautionPackages = 0;
     }
 
-    public void addNumCautionPackages(int num){
-        numCautionPackages += num;
+    public void addNumCautionPackages(){
+        numCautionPackages += 1;
     }
 
-    public void addNumPackages(int num){
-        numPackages += num;
+    public void addNumPackages(){
+        numPackages += 1;
     }
 
     public void addTotalWeight(double weight){
@@ -35,7 +35,7 @@ public class DeliveryStat {
     }
 
     public String toString(){
-        return String.format("Total Weight: %f\nCaution Weight: %f\nTotal Number of Packages: %d\nNumber of Caution Packages: %d\nTotal Time: %f\n",
+        return String.format("---------- Statistics ----------\nTotal Weight: %f\nCaution Weight: %f\nTotal Number of Packages: %d\nNumber of Caution Packages: %d\nTotal Wrapping Time: %f\n",
                 totalWeight, cautionWeight,numPackages, numCautionPackages, totalTime);
     }
 
