@@ -17,8 +17,8 @@ public class Robot {
     IMailDelivery delivery;
     protected final String id;
     /** Possible states the robot can be in */
-    public enum RobotState { DELIVERING, WAITING, RETURNING }
-    public RobotState current_state;
+    private enum RobotState { DELIVERING, WAITING, RETURNING }
+    private RobotState current_state;
     protected int current_floor;
     protected int destination_floor;
     protected IMailPool mailPool;

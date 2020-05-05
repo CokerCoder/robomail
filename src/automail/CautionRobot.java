@@ -6,6 +6,10 @@ import strategies.IMailPool;
 
 public class CautionRobot extends Robot {
 
+
+    private enum RobotState { DELIVERING, WAITING, RETURNING, WRAPPING, UNWRAPPING }
+    private RobotState current_state;
+
     private MailItem arm = null;
 
     /**
@@ -17,6 +21,7 @@ public class CautionRobot extends Robot {
      */
     public CautionRobot(IMailDelivery delivery, IMailPool mailPool) {
         super(delivery, mailPool);
+        this.current_state = RobotState.RETURNING;
     }
 
     public void addToArm(MailItem mailItem) throws ItemTooHeavyException {
@@ -38,8 +43,8 @@ public class CautionRobot extends Robot {
         }
     }
 
-    @Override
-    protected void changeState(RobotState nextState) {
+
+    private void changeState(RobotState nextState) {
         assert(!(deliveryItem == null && tube != null));
     	if (current_state != nextState) {
             System.out.printf("T: %3d > %7s changed from %s to %s%n", Clock.Time(), getIdTube(), current_state, nextState);
@@ -126,6 +131,12 @@ public class CautionRobot extends Robot {
 	        		/** The robot is not at the destination yet, move towards it! */
 	                moveTowards(destination_floor);
     			}
+                break;
+            case UNWRAPPING:
+                break;
+            case WRAPPING:
+                break;
+            default:
                 break;
     	}
     }
