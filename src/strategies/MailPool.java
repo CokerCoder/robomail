@@ -77,6 +77,7 @@ public class MailPool implements IMailPool {
 					if (nextItem.getFragile()) {
 						// Cast to Caution Robot only if fragile items appear
 						if (((CautionRobot) robot).getArm() == null) {
+							((CautionRobot) robot).addToArm(nextItem);
 							j.remove();
 							continue;
 						} else {
