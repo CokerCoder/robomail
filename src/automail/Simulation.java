@@ -108,7 +108,9 @@ public class Simulation {
         
         /** Initiate all the mail */
         mailGenerator.generateAllMail(FRAGILE_ENABLED);
+        System.out.println(mailGenerator.MAIL_TO_CREATE);
         while(MAIL_DELIVERED.size() != mailGenerator.MAIL_TO_CREATE) {
+        	//System.out.println(MAIL_DELIVERED.size());
             mailGenerator.step();
             try {
                 automail.mailPool.step();
@@ -138,6 +140,7 @@ public class Simulation {
 				if (deliveryItem.getFragile()) {
 					deliveryStat.addNumCautionPackages();
 					deliveryStat.addCautionWeight(deliveryItem.getWeight());
+					deliveryStat.addTotalTime();
 				} else if (!deliveryItem.getFragile()) {
 					deliveryStat.addNumPackages();
 					deliveryStat.addTotalWeight(deliveryItem.getWeight());
@@ -165,7 +168,7 @@ public class Simulation {
         System.out.println("T: "+Clock.Time()+" | Simulation complete!");
         System.out.println("Final Delivery time: "+Clock.Time());
 		System.out.printf("Final Score: %.2f%n", total_score);
-		if (deliveryStat != null) {
+		if (deliveryStat != null && STATISTICS_ENABLED) {
         	System.out.println(deliveryStat.toString());
         }
     }

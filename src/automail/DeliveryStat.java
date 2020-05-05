@@ -14,6 +14,10 @@ public class DeliveryStat {
         numCautionPackages = 0;
     }
 
+    public void addTotalTime() {
+    	totalTime += 3;
+    }
+    
     public void addNumCautionPackages(){
         numCautionPackages += 1;
     }
@@ -35,7 +39,7 @@ public class DeliveryStat {
     }
 
     public String toString(){
-        return String.format("---------- Statistics ----------\nTotal Weight: %f\nCaution Weight: %f\nTotal Number of Packages: %d\nNumber of Caution Packages: %d\nTotal Wrapping Time: %f\n",
+        return String.format("---------- Statistics ----------\nTotal Normal Weight: %f\nTotal Caution Weight: %f\nNumber of Normal Packages: %d\nNumber of Caution Packages: %d\nTotal Wrapping Time: %f\n",
                 totalWeight, cautionWeight,numPackages, numCautionPackages, totalTime);
     }
 

@@ -9,8 +9,11 @@ public class CautionRobot extends Robot {
 
     private enum RobotState { DELIVERING, WAITING, RETURNING, WRAPPING, UNWRAPPING }
     private RobotState current_state;
-
+    
     private MailItem arm = null;
+    private static int WRAPPING_TIME = 2;
+    private static int UNWRAPPING_TIME = 1;
+    private int timer = 0;
 
     /**
      * Initiates the robot's location at the start to be at the mailroom
@@ -43,7 +46,7 @@ public class CautionRobot extends Robot {
         }
     }
 
-
+    
     private void changeState(RobotState nextState) {
         assert(!(deliveryItem == null && tube != null));
     	if (current_state != nextState) {
@@ -51,11 +54,11 @@ public class CautionRobot extends Robot {
     	}
     	current_state = nextState;
     	if(nextState == RobotState.DELIVERING){
-            if (deliveryItem!=null) {
-                System.out.printf("T: %3d > %9s-> [%s]%n", Clock.Time(), getIdTube(), deliveryItem.toString());
-            }
-            else if (arm!=null) {
+            if (arm!=null) {
                 System.out.printf("T: %3d > %9s-> [%s]%n", Clock.Time(), getIdTube(), arm.toString());
+            }
+            else if (deliveryItem!=null) {
+                System.out.printf("T: %3d > %9s-> [%s]%n", Clock.Time(), getIdTube(), deliveryItem.toString());
             }
     	}
     }
@@ -86,8 +89,15 @@ public class CautionRobot extends Robot {
                 	break;
                 }
     		case WAITING:
+    			if (arm != null && receivedDispatch) {
+    				receivedDispatch = false;
+                	deliveryCounter = 0; // reset delivery counter
+        			this.setRoute();
+                	changeState(RobotState.WRAPPING);
+    			}
+    			
                 /** If the StorageTube is ready and the Robot is waiting in the mailroom then start the delivery */
-                if(!isEmpty() && receivedDispatch){
+    			if(!isEmpty() && receivedDispatch) {
                 	receivedDispatch = false;
                 	deliveryCounter = 0; // reset delivery counter
         			this.setRoute();
@@ -98,22 +108,33 @@ public class CautionRobot extends Robot {
 
     			if(current_floor == destination_floor){ // If already here drop off either way
                     /** Delivery complete, report this to the simulator! */
-                    if (deliveryItem != null) {
+                    if (deliveryItem != null && current_floor == deliveryItem.getDestFloor()) {
                         delivery.deliver(deliveryItem);
                         deliveryItem = null;
                     }
-                    else if (arm!=null && current_floor == arm.destination_floor) {
-                        delivery.deliver(arm);
-                        arm = null;
+                    else if (arm != null && current_floor == arm.destination_floor) {
+                    	// Needs to be unwrapped first
+                    	if (timer != UNWRAPPING_TIME) {
+                    		changeState(RobotState.UNWRAPPING);
+                    		break; // To avoid changing state again
+                    	} else {
+                    		delivery.deliver(arm);
+                            arm = null;
+                            timer = 0; // Reset timer
+                    	}
                     }
-                
+                    
                     deliveryCounter++;
-
+                    
                     if(deliveryCounter > 3){  // Implies a simulation bug
                     	throw new ExcessiveDeliveryException();
                     }
-
-                    if (tube != null) {
+                    
+                    if (deliveryItem != null) {
+                    	super.setRoute();
+                    	changeState(RobotState.DELIVERING);
+                    }
+                    else if (tube != null) {
                         /** If there is another item, set the robot's route to the location to deliver the item */
                         deliveryItem = tube;
                         tube = null;
@@ -127,16 +148,24 @@ public class CautionRobot extends Robot {
                     else {
                         changeState(RobotState.RETURNING);
                     }
-    			} else {
+    			} 
+    			else {
 	        		/** The robot is not at the destination yet, move towards it! */
 	                moveTowards(destination_floor);
     			}
                 break;
             case UNWRAPPING:
+            	timer++;
+            	if (timer == UNWRAPPING_TIME) {
+            		changeState(RobotState.DELIVERING);
+            	}
                 break;
             case WRAPPING:
-                break;
-            default:
+            	timer++;
+            	if (timer == WRAPPING_TIME) {
+            		changeState(RobotState.DELIVERING);
+            		timer = 0; // Reset timer
+            	}
                 break;
     	}
     }
