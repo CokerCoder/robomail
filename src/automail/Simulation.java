@@ -11,6 +11,7 @@ import strategies.MailPool;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Properties;
 
@@ -83,6 +84,10 @@ public class Simulation {
 		assert(robots > 0);
 		// MailPool
 		IMailPool mailPool = new MailPool(robots);
+
+		// Reset the number of robots on floors and set all robots to the ground floor
+		Building.resetFloors();
+		Building.NUM_ROBOTS[0] = robots;
 
 		// End properties
 		

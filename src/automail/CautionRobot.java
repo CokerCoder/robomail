@@ -1,5 +1,7 @@
 package automail;
 
+import java.util.Arrays;
+
 import exceptions.ExcessiveDeliveryException;
 import exceptions.ItemTooHeavyException;
 import strategies.IMailPool;
@@ -46,6 +48,23 @@ public class CautionRobot extends Robot {
         }
     }
 
+    @Override
+    protected void moveTowards(int destination) {
+        if(current_floor < destination){
+            if(Building.CAUTION_FLOORS[current_floor]==0) {
+                Building.NUM_ROBOTS[current_floor] += 1;
+                Building.NUM_ROBOTS[current_floor-1] -= 1;
+                current_floor++;
+            }
+        } else {
+            if(Building.CAUTION_FLOORS[current_floor-2]==0) {
+                Building.NUM_ROBOTS[current_floor-2] += 1;
+                Building.NUM_ROBOTS[current_floor-1] -= 1;
+                current_floor--;    
+            }
+        }
+    }
+
     
     private void changeState(RobotState nextState) {
         assert(!(deliveryItem == null && tube != null));
@@ -70,6 +89,10 @@ public class CautionRobot extends Robot {
 
     @Override
     public void step() throws ExcessiveDeliveryException {
+        
+        System.out.println(Arrays.toString(Building.CAUTION_FLOORS));
+		System.out.println(Arrays.toString(Building.NUM_ROBOTS));
+        
         switch(current_state) {
     		/** This state is triggered when the robot is returning to the mailroom after a delivery */
     		case RETURNING:
@@ -113,12 +136,23 @@ public class CautionRobot extends Robot {
                         deliveryItem = null;
                     }
                     else if (arm != null && current_floor == arm.destination_floor) {
-                    	// Needs to be unwrapped first
+                        // Needs to be unwrapped first
+                        // Check if there are other robots on the same floor
+                        if (Building.NUM_ROBOTS[current_floor-1] > 1) {
+                            
+                            
+                            // TODO: When there are two or more robots delivering fragile items on the same floor
+                            
+                            
+                            break;
+                        }
                     	if (timer != UNWRAPPING_TIME) {
+                            Building.CAUTION_FLOORS[current_floor-1] = 1;
                     		changeState(RobotState.UNWRAPPING);
                     		break; // To avoid changing state again
                     	} else {
-                    		delivery.deliver(arm);
+                            delivery.deliver(arm);
+                            Building.CAUTION_FLOORS[current_floor-1] = 0;
                             arm = null;
                             timer = 0; // Reset timer
                     	}
