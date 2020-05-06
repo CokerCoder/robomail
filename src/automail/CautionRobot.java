@@ -1,7 +1,6 @@
 package automail;
 
-import java.util.Arrays;
-
+import java.util.Collections;
 import exceptions.ExcessiveDeliveryException;
 import exceptions.ItemTooHeavyException;
 import strategies.IMailPool;
@@ -62,6 +61,9 @@ public class CautionRobot extends Robot {
             current_floor--;
         }
         Building.FLOOR_WITH_ROBOT.add(current_floor);
+        if(current_floor == destination_floor && arm != null){
+            Building.FLOOR_WITH_CAUTION_ROBOT.add(arm.destination_floor);
+        }
     }
 
     
@@ -89,8 +91,8 @@ public class CautionRobot extends Robot {
     @Override
     public void step() throws ExcessiveDeliveryException {
         
-        //System.out.println(Building.FLOOR_WITH_CAUTION_ROBOT.toString());
-        //System.out.println(Building.FLOOR_WITH_ROBOT.toString());
+//        System.out.println(Building.FLOOR_WITH_CAUTION_ROBOT.toString());
+//        System.out.println(Building.FLOOR_WITH_ROBOT.toString());
         switch(current_state) {
     		/** This state is triggered when the robot is returning to the mailroom after a delivery */
     		case RETURNING:
@@ -128,22 +130,13 @@ public class CautionRobot extends Robot {
             case DELIVERING:
     			if(current_floor == destination_floor){ // If already here drop off either way
                     /** Delivery complete, report this to the simulator! */
-                    if (deliveryItem != null && current_floor == deliveryItem.getDestFloor()) {
-                        delivery.deliver(deliveryItem);
-                        deliveryItem = null;
-                    }
-                    else if (arm != null && current_floor == arm.destination_floor) {
+                    if (arm != null && current_floor == arm.destination_floor) {
                         // Needs to be unwrapped first
                         // Check if there are other robots on the same floor
-                        if(!Building.FLOOR_WITH_CAUTION_ROBOT.contains(arm.destination_floor)) {
-                            Building.FLOOR_WITH_CAUTION_ROBOT.add(arm.destination_floor);
-                        }
                     	if (timer != UNWRAPPING_TIME) {
-                    	    Building.FLOOR_WITH_ROBOT.remove((Object)arm.destination_floor);
-                    	    if(!Building.FLOOR_WITH_ROBOT.contains(arm.destination_floor)){
+                            if(Collections.frequency(Building.FLOOR_WITH_ROBOT,arm.destination_floor)<=1){
                     	        changeState(RobotState.UNWRAPPING);// To avoid changing state again
                     	    }
-                            Building.FLOOR_WITH_ROBOT.add(arm.destination_floor);
                     	    break;
                     	} else {
                             delivery.deliver(arm);
@@ -152,12 +145,17 @@ public class CautionRobot extends Robot {
                             timer = 0; // Reset timer
                     	}
                     }
+                    else if (deliveryItem != null && current_floor == deliveryItem.getDestFloor()) {
+                        delivery.deliver(deliveryItem);
+                        deliveryItem = null;
+                    }
                     
                     deliveryCounter++;
                     
                     if(deliveryCounter > 3){  // Implies a simulation bug
                     	throw new ExcessiveDeliveryException();
                     }
+
                     if (arm != null) {
                         this.setRoute();
                         changeState(RobotState.DELIVERING);
@@ -173,7 +171,6 @@ public class CautionRobot extends Robot {
                         super.setRoute();
                         changeState(RobotState.DELIVERING);
                     }
-
                     else {
                         changeState(RobotState.RETURNING);
                     }
