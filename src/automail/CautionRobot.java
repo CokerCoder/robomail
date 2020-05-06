@@ -13,8 +13,8 @@ public class CautionRobot extends Robot {
     private RobotState current_state;
     
     private MailItem arm = null;
-    private static int WRAPPING_TIME = 2;
-    private static int UNWRAPPING_TIME = 1;
+    private static final int WRAPPING_TIME = 2;
+    private static final int UNWRAPPING_TIME = 1;
     private int timer = 0;
 
     /**
@@ -27,6 +27,7 @@ public class CautionRobot extends Robot {
     public CautionRobot(IMailDelivery delivery, IMailPool mailPool) {
         super(delivery, mailPool);
         this.current_state = RobotState.RETURNING;
+        Building.FLOOR_WITH_ROBOT.add(Building.MAILROOM_LOCATION);
     }
 
     public void addToArm(MailItem mailItem) throws ItemTooHeavyException {
@@ -51,18 +52,16 @@ public class CautionRobot extends Robot {
     @Override
     protected void moveTowards(int destination) {
         if(current_floor < destination){
-            if(Building.CAUTION_FLOORS[current_floor]==0) {
-                Building.NUM_ROBOTS[current_floor] += 1;
-                Building.NUM_ROBOTS[current_floor-1] -= 1;
-                current_floor++;
-            }
-        } else {
-            if(Building.CAUTION_FLOORS[current_floor-2]==0) {
-                Building.NUM_ROBOTS[current_floor-2] += 1;
-                Building.NUM_ROBOTS[current_floor-1] -= 1;
-                current_floor--;    
-            }
+            if(Building.FLOOR_WITH_CAUTION_ROBOT.contains(current_floor+1)) return;
+            Building.FLOOR_WITH_ROBOT.remove((Object)current_floor);
+            current_floor++;
         }
+        else {
+            if(Building.FLOOR_WITH_CAUTION_ROBOT.contains(current_floor-1)) return;
+            Building.FLOOR_WITH_ROBOT.remove((Object)current_floor);
+            current_floor--;
+        }
+        Building.FLOOR_WITH_ROBOT.add(current_floor);
     }
 
     
@@ -90,9 +89,8 @@ public class CautionRobot extends Robot {
     @Override
     public void step() throws ExcessiveDeliveryException {
         
-        System.out.println(Arrays.toString(Building.CAUTION_FLOORS));
-		System.out.println(Arrays.toString(Building.NUM_ROBOTS));
-        
+        //System.out.println(Building.FLOOR_WITH_CAUTION_ROBOT.toString());
+        //System.out.println(Building.FLOOR_WITH_ROBOT.toString());
         switch(current_state) {
     		/** This state is triggered when the robot is returning to the mailroom after a delivery */
     		case RETURNING:
@@ -128,7 +126,6 @@ public class CautionRobot extends Robot {
                 }
                 break;
             case DELIVERING:
-
     			if(current_floor == destination_floor){ // If already here drop off either way
                     /** Delivery complete, report this to the simulator! */
                     if (deliveryItem != null && current_floor == deliveryItem.getDestFloor()) {
@@ -138,21 +135,19 @@ public class CautionRobot extends Robot {
                     else if (arm != null && current_floor == arm.destination_floor) {
                         // Needs to be unwrapped first
                         // Check if there are other robots on the same floor
-                        if (Building.NUM_ROBOTS[current_floor-1] > 1) {
-                            
-                            
-                            // TODO: When there are two or more robots delivering fragile items on the same floor
-                            
-                            
-                            break;
+                        if(!Building.FLOOR_WITH_CAUTION_ROBOT.contains(arm.destination_floor)) {
+                            Building.FLOOR_WITH_CAUTION_ROBOT.add(arm.destination_floor);
                         }
                     	if (timer != UNWRAPPING_TIME) {
-                            Building.CAUTION_FLOORS[current_floor-1] = 1;
-                    		changeState(RobotState.UNWRAPPING);
-                    		break; // To avoid changing state again
+                    	    Building.FLOOR_WITH_ROBOT.remove((Object)arm.destination_floor);
+                    	    if(!Building.FLOOR_WITH_ROBOT.contains(arm.destination_floor)){
+                    	        changeState(RobotState.UNWRAPPING);// To avoid changing state again
+                    	    }
+                            Building.FLOOR_WITH_ROBOT.add(arm.destination_floor);
+                    	    break;
                     	} else {
                             delivery.deliver(arm);
-                            Building.CAUTION_FLOORS[current_floor-1] = 0;
+                            Building.FLOOR_WITH_CAUTION_ROBOT.remove((Object)arm.destination_floor);
                             arm = null;
                             timer = 0; // Reset timer
                     	}
@@ -163,8 +158,11 @@ public class CautionRobot extends Robot {
                     if(deliveryCounter > 3){  // Implies a simulation bug
                     	throw new ExcessiveDeliveryException();
                     }
-                    
-                    if (deliveryItem != null) {
+                    if (arm != null) {
+                        this.setRoute();
+                        changeState(RobotState.DELIVERING);
+                    }
+                    else if (deliveryItem != null) {
                     	super.setRoute();
                     	changeState(RobotState.DELIVERING);
                     }
@@ -175,10 +173,7 @@ public class CautionRobot extends Robot {
                         super.setRoute();
                         changeState(RobotState.DELIVERING);
                     }
-                    else if (arm != null) {
-                        this.setRoute();
-                        changeState(RobotState.DELIVERING);
-                    }
+
                     else {
                         changeState(RobotState.RETURNING);
                     }

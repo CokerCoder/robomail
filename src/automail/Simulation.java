@@ -84,11 +84,6 @@ public class Simulation {
 		assert(robots > 0);
 		// MailPool
 		IMailPool mailPool = new MailPool(robots);
-
-		// Reset the number of robots on floors and set all robots to the ground floor
-		Building.resetFloors();
-		Building.NUM_ROBOTS[0] = robots;
-
 		// End properties
 		
         MAIL_DELIVERED = new ArrayList<MailItem>();

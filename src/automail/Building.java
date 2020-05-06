@@ -1,8 +1,16 @@
 package automail;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+
 public class Building {
-	
-	
+
+    /** The number of floors contain robots delivering fragile **/
+	public static ArrayList<Integer> FLOOR_WITH_CAUTION_ROBOT = new ArrayList<>();
+
+    /** The number of floors contain robots **/
+    public static ArrayList<Integer> FLOOR_WITH_ROBOT = new ArrayList<>();
+
     /** The number of floors in the building **/
     public static int FLOORS;
     
@@ -12,15 +20,5 @@ public class Building {
     /** Represents the mailroom location */
     public static final int MAILROOM_LOCATION = 1;
 
-    // Number of robots on the floor
-    public static int[] NUM_ROBOTS;
-    // If the floor need to have sole access, 0 for no, 1 for yes
-    public static int[] CAUTION_FLOORS;
-
-
-    public static void resetFloors() {
-        NUM_ROBOTS = new int[FLOORS];
-        CAUTION_FLOORS = new int[FLOORS];
-    }
     
 }
