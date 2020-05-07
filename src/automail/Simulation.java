@@ -32,6 +32,7 @@ public class Simulation {
 
     private static DeliveryStat deliveryStat = new DeliveryStat();
 
+	
     public static void main(String[] args) throws IOException, InstantiationException, IllegalAccessException, ClassNotFoundException {
     	Properties automailProperties = new Properties();
 		// Default properties
@@ -84,6 +85,9 @@ public class Simulation {
 		assert(robots > 0);
 		// MailPool
 		IMailPool mailPool = new MailPool(robots);
+
+		Building.initializeFloors();
+		Building.FLOOR_STATUS.put(1, robots);		
 		// End properties
 		
         MAIL_DELIVERED = new ArrayList<MailItem>();

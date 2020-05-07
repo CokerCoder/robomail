@@ -1,15 +1,12 @@
 package automail;
 
-import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.HashMap;
 
 public class Building {
 
-    /** The number of floors contain robots delivering fragile **/
-	public static ArrayList<Integer> FLOOR_WITH_CAUTION_ROBOT = new ArrayList<>();
 
-    /** The number of floors contain robots **/
-    public static ArrayList<Integer> FLOOR_WITH_ROBOT = new ArrayList<>();
+    // Floor status of each floor, 0 for empty floor, n for having some robots, -n for locked (fragile handling)
+    public static HashMap<Integer, Integer> FLOOR_STATUS = new HashMap<>();
 
     /** The number of floors in the building **/
     public static int FLOORS;
@@ -20,5 +17,11 @@ public class Building {
     /** Represents the mailroom location */
     public static final int MAILROOM_LOCATION = 1;
 
-    
+
+    public static void initializeFloors() {
+        for (int i = 1; i < FLOORS+1; i++) {
+            FLOOR_STATUS.put(i, 0);
+        }
+    }
+
 }
