@@ -112,9 +112,7 @@ public class Simulation {
         
         /** Initiate all the mail */
         mailGenerator.generateAllMail(FRAGILE_ENABLED);
-        System.out.println(mailGenerator.MAIL_TO_CREATE);
         while(MAIL_DELIVERED.size() != mailGenerator.MAIL_TO_CREATE) {
-        	//System.out.println(MAIL_DELIVERED.size());
             mailGenerator.step();
             try {
                 automail.mailPool.step();
