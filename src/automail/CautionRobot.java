@@ -240,10 +240,13 @@ public class CautionRobot extends Robot {
                 
             case WRAPPING:
 
+                timer++;
+
                 if (timer == WRAPPING_TIME) {
                     
                     // If mailroom floor is locked, keep the robot waiting in the mailroom
                     if (Building.FLOOR_STATUS.get(1) < 0) {
+                        timer--;
                         return;
                     }
                     
@@ -260,8 +263,7 @@ public class CautionRobot extends Robot {
                     changeState(RobotState.DELIVERING);
                     break;
                 }
-                
-                timer++;
+
                 break;
     	}
     }
