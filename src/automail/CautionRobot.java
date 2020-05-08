@@ -1,6 +1,7 @@
 package automail;
 
 import java.util.Arrays;
+
 import exceptions.ExcessiveDeliveryException;
 import exceptions.ItemTooHeavyException;
 import strategies.IMailPool;
@@ -51,39 +52,33 @@ public class CautionRobot extends Robot {
     @Override
     protected void moveTowards(int destination) {
         
-        int current = Building.FLOOR_STATUS.get(current_floor);
+        int current = current_floor;
+        int current_status = Building.FLOOR_STATUS.get(current);
         
-        if (current_floor < destination) {
-            int upstairs = Building.FLOOR_STATUS.get(current_floor+1);
+        if (current < destination) {
+            int upstairs = Building.FLOOR_STATUS.get(current+1);
             if (upstairs < 0) {
                 return;
             }
-            Building.FLOOR_STATUS.put(current_floor+1, upstairs+1);
-            
-            // If current is locked
-            if (current < 0) {
-                Building.FLOOR_STATUS.put(current_floor, current+1);
-            } else if (current > 0) {
-                Building.FLOOR_STATUS.put(current_floor, current-1);
-            }
+            Building.FLOOR_STATUS.put(current+1, upstairs+1);
             
             current_floor++;
         }
         else {
-            int downstairs = Building.FLOOR_STATUS.get(current_floor-1);
+            int downstairs = Building.FLOOR_STATUS.get(current-1);
             if (downstairs < 0) {
                 return;
             }
-            Building.FLOOR_STATUS.put(current_floor-1, downstairs+1);
+            Building.FLOOR_STATUS.put(current-1, downstairs+1);
             
-            // If current is locked
-            if (current < 0) {
-                Building.FLOOR_STATUS.put(current_floor, current+1);
-            } else if (current > 0) {
-                Building.FLOOR_STATUS.put(current_floor, current-1);
-            }
-
             current_floor--;
+        }
+
+
+        if (current_status < 0) {
+            Building.FLOOR_STATUS.put(current, current_status+1);
+        } else if (current_status > 0) {
+            Building.FLOOR_STATUS.put(current, current_status-1);
         }
 
         if (arm!=null && current_floor==arm.getDestFloor()) {
@@ -123,7 +118,7 @@ public class CautionRobot extends Robot {
         switch(current_state) {
     		/** This state is triggered when the robot is returning to the mailroom after a delivery */
             case RETURNING:
-            // System.out.println(this.id+" returning here");
+
     			/** If its current position is at the mailroom, then the robot should change state */
                 if(current_floor == Building.MAILROOM_LOCATION){
                 	if (tube != null) {
@@ -131,9 +126,8 @@ public class CautionRobot extends Robot {
                         System.out.printf("T: %3d >  +addToPool [%s]%n", Clock.Time(), tube.toString());
                         tube = null;
                 	}
-                    /** Tell the sorter the robot is ready */
-                    // Remove one from robots at level 1
                     
+                    /** Tell the sorter the robot is ready */
         			mailPool.registerWaiting(this);
                     changeState(RobotState.WAITING);
                     
@@ -143,19 +137,16 @@ public class CautionRobot extends Robot {
                         Building.FLOOR_STATUS.put(1, Building.FLOOR_STATUS.get(1)+1);
                     }
                     
-
                 } else {
                 	/** If the robot is not at the mailroom floor yet, then move towards it! */
                     this.moveTowards(Building.MAILROOM_LOCATION);
-                	break;
                 }
 
                 break;
 
             case WAITING:
 
-                // System.out.println(this.id+" waiting here");
-            
+                // If the mailroom floor is locked, keep the robot waiting in the mailroom
                 if (Building.FLOOR_STATUS.get(1) < 0) {
                     return;
                 }
@@ -169,12 +160,14 @@ public class CautionRobot extends Robot {
                     if (arm != null) {
                         changeState(RobotState.WRAPPING);
                         break;
-                    }// If level 1 is not locked, let the robot go through
+                    }
+                    
+                    // If level 1 is not locked, let the robot go through
                     else {
                         Building.FLOOR_STATUS.put(1, Building.FLOOR_STATUS.get(1)+1);
-                        changeState(RobotState.DELIVERING); // The robot will be on level 1 as soon as it turns into delivery mode
+                        // The robot will be on level 1 as soon as it turns into delivery mode
+                        changeState(RobotState.DELIVERING); 
                     }
-
                 }
 
                 break;
@@ -182,7 +175,8 @@ public class CautionRobot extends Robot {
 
             case DELIVERING:
 
-    			if(current_floor == destination_floor){ // If already here drop off either way
+    			if (current_floor == destination_floor) { 
+
                     /** Delivery complete, report this to the simulator! */
                     if (arm != null && current_floor == arm.getDestFloor()) {
 
@@ -192,20 +186,18 @@ public class CautionRobot extends Robot {
                             break;
                         }
 
-                        // if (arm.getDestFloor() == 1) {
-                        //     Building.FLOOR_STATUS.put(1, -Building.FLOOR_STATUS.get(1));
-                        // }
-
+                        // othereise start unwrapping
                     	if (timer != UNWRAPPING_TIME) {
-                    	    changeState(RobotState.UNWRAPPING);// To avoid changing state again
+                            changeState(RobotState.UNWRAPPING);
                     	    break;
                     	} else {
                             delivery.deliver(arm);
-                            Building.FLOOR_STATUS.put(current_floor, 1); // unlock current floor
+                            Building.FLOOR_STATUS.put(current_floor, 1); // unlock current floor after delivered
                             arm = null;
                             timer = 0; // Reset timer
                     	}
                     }
+                    
                     else if (deliveryItem != null && current_floor == deliveryItem.getDestFloor()) {
                         delivery.deliver(deliveryItem);
                         deliveryItem = null;
@@ -247,14 +239,18 @@ public class CautionRobot extends Robot {
                 break;
                 
             case WRAPPING:
-            	if (timer == WRAPPING_TIME) {
 
+                if (timer == WRAPPING_TIME) {
+                    
+                    // If mailroom floor is locked, keep the robot waiting in the mailroom
                     if (Building.FLOOR_STATUS.get(1) < 0) {
                         return;
                     }
-
+                    
+                    // otherwise let the robot pass
                     Building.FLOOR_STATUS.put(1, Building.FLOOR_STATUS.get(1)+1);
                     
+                    // lock the mailroom floor if deliver to this floor
                     if (arm.getDestFloor() == 1) {
                         Building.FLOOR_STATUS.put(1, -Building.FLOOR_STATUS.get(1));
                     }
